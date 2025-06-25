@@ -238,14 +238,35 @@ def generate_plots(model, train_losses, val_losses, val_log_det, val_log_pz, dev
     # Plot inverse trajectories and compute probabilities
     print('Generating inverse trajectories and computing probabilities...')
     
-    # Choose 5 points (3 inside, 2 outside the Olympic rings)
-    points = torch.tensor([
-        [0.0, 0.0],    # Center of first ring
-        [2.0, 0.0],    # Center of second ring
-        [4.0, 0.0],    # Center of third ring
-        [3.0, 2.0],    # Outside but not too far
-        [-2.0, -1.0]   # Outside but not too far
-    ], device=device)
+    # Get training data for normalization
+    data = get_unconditional_data(250000, device='cpu').cpu().numpy()
+    mean = data.mean(axis=0)
+    std = data.std(axis=0)
+    print(f"Data mean: {mean}, std: {std}")
+    # Olympic ring parameters
+    centers = np.array([
+        [0, 0],    # blue
+        [2, 0],    # black
+        [4, 0],    # red
+        [1, -1],   # yellow
+        [3, -1]    # green
+    ])
+    radius = 1
+    # Pick 3 points on the edge of 3 different rings at different angles
+    thetas = [0, np.pi/2, np.pi]  # angles for variety
+    edge_points = np.array([
+        centers[0] + radius * np.array([np.cos(thetas[0]), np.sin(thetas[0])]),
+        centers[1] + radius * np.array([np.cos(thetas[1]), np.sin(thetas[1])]),
+        centers[2] + radius * np.array([np.cos(thetas[2]), np.sin(thetas[2])]),
+    ])
+    # 2 points far outside
+    outside_points = np.array([[5, 5], [-5, -5]])
+    # Normalize all points
+    all_points = np.vstack([edge_points, outside_points])
+    all_points_norm = (all_points - mean) / std
+    print(f"Edge points (unnormalized):\n{edge_points}")
+    print(f"Normalized points for inverse plot:\n{all_points_norm}")
+    points = torch.tensor(all_points_norm, dtype=torch.float32, device=device)
     
     # Plot inverse trajectories
     plot_inverse_trajectories(
@@ -254,15 +275,28 @@ def generate_plots(model, train_losses, val_losses, val_log_det, val_log_pz, dev
         save_path=os.path.join(save_dir, 'trajectories', 'inverse_trajectories.png')
     )
     
-    # Compute probabilities
-    log_probs, log_pz, log_det, valid_mask = compute_point_probabilities(model, points)
-    
-    # Print probability components
-    print('\nProbability components for selected points:')
-    print('Point\t\tlog(p(x))\tlog(p(z))\tlog(|det|)')
-    print('-' * 60)
-    for i, (prob, pz, det) in enumerate(zip(log_probs, log_pz, log_det)):
-        print(f'Point {i+1}:\t{prob:.4f}\t\t{pz:.4f}\t\t{det:.4f}')
+    # Plot inverse trajectories for points sampled from the model
+    print('\nGenerating inverse trajectories for points sampled from the model...')
+    # Initialize base distribution
+    D = model.D # Get dimension from model
+    base_distribution = MultivariateNormal(
+        loc=torch.zeros(D, device=device),
+        covariance_matrix=torch.eye(D, device=device)
+    )
+    # Sample points from the base distribution
+    z_samples = base_distribution.sample((5,))
+    # Transform to data space using model.forward
+    x_samples, _ = model.forward(z_samples) # These are in normalized data space
+    print(f"Points sampled from model (normalized) for inverse plot:\n{x_samples.detach().cpu().numpy()}")
+    plot_inverse_trajectories(
+        model,
+        x_samples, # Pass these directly as they are already normalized
+        save_path=os.path.join(save_dir, 'trajectories', 'inverse_trajectories_from_samples.png')
+    )
+
+    # Compute probabilities (for the original hand-picked points, if desired, or remove/comment out)
+    # print('\nProbability components for selected points:')
+    # ... (existing probability computation for hand-picked points) ...
 
 def main():
     parser = argparse.ArgumentParser(description='Train and visualize Normalizing Flow model')

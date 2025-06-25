@@ -8,7 +8,7 @@ import os
 import shutil
 
 from utils.data_utils import create_olympic_rings
-from flow_matching import ConditionalFlowMatching
+from models.flow_matching import ConditionalFlowMatching
 from torch.distributions import MultivariateNormal
 
 def plot_input_data(data, labels, save_path=None):
@@ -151,7 +151,9 @@ def train_conditional_flow_matching(
     ).to(device)
     
     # Get data
-    data, labels = create_olympic_rings(n_points, return_class=True)
+    data, labels, label_mapping = create_olympic_rings(n_points, return_class=True)
+    data = torch.tensor(data, dtype=torch.float32, device=device)
+    labels = torch.tensor(labels, dtype=torch.long, device=device)
     dataset = torch.utils.data.TensorDataset(data, labels)
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     

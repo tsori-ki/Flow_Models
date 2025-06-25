@@ -8,7 +8,7 @@ import os
 import shutil
 
 from utils.data_utils import create_unconditional_olympic_rings
-from flow_matching import UnconditionalFlowMatching
+from models.flow_matching import UnconditionalFlowMatching
 from torch.distributions import MultivariateNormal
 
 def plot_loss_curve(train_losses, save_path=None):
@@ -206,6 +206,9 @@ def train_flow_matching(
         for batch in pbar:
             # Sample initial points from base distribution
             y_0 = model.base_distribution.sample((batch.shape[0],)).to(device)
+            
+            # Ensure batch is float32
+            batch = batch.float()
             
             # Compute loss
             loss = model.loss((y_0, batch))

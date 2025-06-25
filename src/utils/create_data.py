@@ -61,12 +61,12 @@ def generate_points_on_rings__unconditional(centers, radius, thickness, num_poin
 # endregion: Unconditional Helpers
 
 
-def create_olympic_rings(n_points, ring_thickness=0.25, verbose=True):
+def create_olympic_rings(n_points, ring_thickness=0.25, verbose=True, return_class=False):
     num_points_per_ring = n_points // 5
     sampled_points, labels = sample_olympic_rings(num_points_per_ring, ring_thickness)
 
     # Plotting the points
-    if verbose:
+    if verbose and not return_class:
         x, y = zip(*sampled_points)
         colors = labels
         if len(sampled_points) > 10000:
@@ -88,7 +88,10 @@ def create_olympic_rings(n_points, ring_thickness=0.25, verbose=True):
     # normalize data
     sampled_points = (sampled_points - np.mean(sampled_points, axis=0)) / np.std(sampled_points, axis=0)
 
-    return sampled_points, labels, int_to_label
+    if return_class:
+        return sampled_points, labels, int_to_label
+    else:
+        return sampled_points, labels, int_to_label
 
 
 def create_unconditional_olympic_rings(n_points, ring_thickness=0.25, verbose=True):

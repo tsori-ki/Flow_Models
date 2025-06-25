@@ -32,7 +32,7 @@ def get_conditional_data(n_points=250000, ring_thickness=0.25, device='cuda' if 
             - labels: torch.Tensor of shape (n_points,)
             - label_mapping: dict mapping integer labels to color names
     """
-    data, labels, label_mapping = create_olympic_rings(n_points, ring_thickness)
+    data, labels, label_mapping = create_olympic_rings(n_points, ring_thickness, verbose=False)
     return (torch.tensor(data, dtype=torch.float32, device=device),
             torch.tensor(labels, dtype=torch.long, device=device),
             label_mapping)

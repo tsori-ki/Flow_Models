@@ -1,40 +1,94 @@
-# Normalizing Flow Models for Olympic Rings Data
+# Flow-Based Generative Models – Normalizing Flows & Flow Matching
 
-This project implements Normalizing Flow models for generating and analyzing 2D Olympic rings data.
+This project implements two flow-based generative modeling approaches — **Normalizing Flows** and **Flow Matching** — to learn complex 2D data distributions. The models are trained to reproduce and analyze data shaped like the Olympic rings.
+
+---
+
+## Normalizing Flows
+
+Normalizing Flows learn invertible transformations that map a simple base distribution into a complex target distribution.
+
+Key details:
+- Architecture: 15 affine coupling layers with interleaved permutations
+- Optimization: Maximum Likelihood using change-of-variable formula
+- Outputs: Loss plots, per-layer sample distributions, trajectory visualizations
+- Sampling and inversion visualizations demonstrate interpretability
+- Based on the Real NVP architecture by Dinh et al. (2017). [arXiv:1605.08803](https://arxiv.org/abs/1605.08803)
+
+---
+
+## Flow Matching
+
+Flow Matching learns continuous-time transformation fields between a prior and target distribution.
+
+Key details:
+- Implements both unconditional and class-conditional flows
+- Models a time-dependent vector field using MLPs
+- Sampling via Euler integration, forward and reverse
+- Evaluates flow consistency and trajectory smoothness
+- Implements the Flow Matching approach introduced by Lipman et al. (2022). [arXiv:2210.02747](https://arxiv.org/abs/2210.02747)
+
+
+---
 
 ## Setup
 
-1. Install the required dependencies:
+1. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. Run the main script:
+
 ```bash
 python main.py
 ```
 
 This will:
 - Train the Normalizing Flow model
-- Generate all required plots in the `plots` directory
-- Print probability components for selected points
+- Generate plots in the `plots/` directory
+- Print log-probability components for selected points
 
-## Project Structure
+---
 
-- `data_utils.py`: Data loading and preparation utilities
-- `normalizing_flow.py`: Core model components (AffineCouplingLayer, PermutationLayer, NormalizingFlowModel)
-- `train_nf.py`: Training loop implementation
-- `plotting_utils.py`: Visualization functions
-- `main.py`: Main script to run experiments
-- `create_data.py`: Data generation utilities (provided)
+## Key Files
+
+- `data_utils.py`: Data generation and loading (Olympic rings)
+- `normalizing_flow.py`: Core flow model components
+- `train_nf.py`: Training loop for Normalizing Flows
+- `flow_matching.py`: Flow Matching architecture and training
+- `plotting_utils.py`: Visualization utilities
+- `main.py`: Controller script to run experiments
+
+---
 
 ## Output
 
-The script will generate the following plots in the `plots` directory:
-1. `loss_components.png`: Training and validation losses
-2. `samples_seed_*.png`: Generated samples with different random seeds
-3. `layer_*.png`: Distribution of samples after each N layers
-4. `sampling_trajectories.png`: 2D trajectories of points through layers
-5. `inverse_trajectories.png`: Inverse trajectories of selected points
+All result plots are saved to the `plots/` folder:
 
-The trained model will be saved as `normalizing_flow_model.pt`. 
+- `loss_components.png`: Loss curves and components
+- `samples_seed_*.png`: Sampled outputs with different random seeds
+- `layer_*.png`: Visualization of sample transformation over layers
+- `sampling_trajectories.png`: Forward sampling as 2D trajectories
+- `inverse_trajectories.png`: Inverse flow over selected points
+- `conditional_sampling.png`: Class-aware sampling from flow matching
+
+Trained models are saved as `.pt` files (e.g., `normalizing_flow_model.pt`).
+
+---
+
+## Technologies
+
+- Python 3.10 / PyTorch
+- Matplotlib, Numpy
+- Cosine Learning Rate Scheduler
+
+---
+
+## Highlights
+
+- All implementations built fully from scratch using PyTorch
+- 2D problem setup enables interpretable training and visualization
+- Separate analysis of sampling consistency, likelihood estimation, and flow-based transformation quality
+```
